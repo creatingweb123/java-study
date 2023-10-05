@@ -1,0 +1,48 @@
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.util.Stack;
+import java.io.IOException;
+
+// 17299
+public class App{
+    public static void main(String[] args) throws IOException{
+
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        
+        StringBuffer sb = new StringBuffer();
+
+        int[] count = new int[1000001];
+        int N = Integer.parseInt(br.readLine());
+
+        String[] s       = br.readLine().split(" ");
+        int[] int_s      = new int[N];
+        int[] result     = new int[N];
+        int sum_value;
+
+        Stack<Integer> stack = new Stack<>();
+
+        for(int i=0;i<N;i++){
+            int_s[i] = Integer.parseInt(s[i]);
+        }
+    
+        for(int i=0;i<N;i++){
+            count[int_s[i]] += 1;
+        }
+
+
+        for(int i=0;i<N;i++){
+            sum_value = count[int_s[i]];
+            while(!stack.empty()&&count[int_s[stack.peek()]]<sum_value){
+                result[stack.pop()] = int_s[i];
+            }
+            stack.push(i);
+        }
+        while(!stack.empty()){
+            result[stack.pop()] = -1;
+        }
+        for(int i=0;i<N;i++){
+            sb.append(result[i]+" ");
+        }
+        System.out.print(sb);
+    }
+}
