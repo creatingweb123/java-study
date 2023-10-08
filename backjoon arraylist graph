@@ -1,0 +1,61 @@
+import java.io.IOException;
+import java.util.LinkedList;
+import java.util.Queue;
+import java.util.Scanner;
+import java.util.ArrayList;
+// 17299
+public class App{
+
+    public static void calc()throws IOException{
+        Scanner sc = new Scanner(System.in);
+        StringBuffer sb = new StringBuffer();
+
+        int N = sc.nextInt();
+        int Q = sc.nextInt();
+        int x,y,value;
+
+        int v, i_k,i_v;
+
+        Queue<Integer> v_queue = new LinkedList<>();
+
+        ArrayList<int[]>[] array = new ArrayList[N+1];
+        for(int i=1;i<=N;i++){
+            array[i] = new ArrayList<>();
+        }
+
+        for(int i=0;i<N-1;i++){
+            x = sc.nextInt();
+            y = sc.nextInt();
+            value = sc.nextInt();
+            array[x].add(new int[]{y,value});
+            array[y].add(new int[]{x,value});
+        }
+        // 계산
+        for(int i=0;i<Q;i++){
+            boolean[] check= new boolean[N+1]; // check
+            int count=0;
+            i_k = sc.nextInt();
+            i_v = sc.nextInt();
+            v_queue.offer(i_v);
+            check[i_v] = true;
+
+            while(!v_queue.isEmpty()){
+                v = v_queue.poll();
+                for(int[] a:array[v]){
+                    if(!check[a[0]] && a[1]>=i_k){
+                        count+=1;
+                        v_queue.offer(a[0]);
+                    }
+                    check[a[0]]=true;
+                }
+            }
+            sb.append(count+"\n");
+        }
+        System.out.print(sb);
+        sc.close();
+
+    }
+    public static void main(String[] args)throws IOException{
+        calc();
+    }
+}
