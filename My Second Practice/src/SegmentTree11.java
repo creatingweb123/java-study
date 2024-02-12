@@ -1,3 +1,5 @@
+
+//13537 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -31,21 +33,22 @@ public class SegmentTree11 {
 			int a = Integer.parseInt(st.nextToken());
 			int b = Integer.parseInt(st.nextToken());
 			int c = Integer.parseInt(st.nextToken());
-			int[] d = find(1, N, 1, a, b);
-			int value = upperBound(d, c);
-			sb.append((d.length - value) + "\n");
+			sb.append(find(1, N, 1, a, b, c) + "\n");
 		}
 		bw.write(sb.toString());
 		bw.flush();
 		bw.close();
 	}
 
-	public static int[] init(int start, int end, int node) {
+	public static void init(int start, int end, int node) {
 		if (start == end) {
-			return tree[node] = new int[] { datas[start] };
+			tree[node] = new int[] { datas[start] };
+			return;
 		}
 		int mid = (start + end) / 2;
-		return tree[node] = merge(init(start, mid, node * 2), init(mid + 1, end, node * 2 + 1));
+		init(start, mid, node * 2);
+		init(mid + 1, end, node * 2 + 1);
+		tree[node] = merge(tree[node * 2], tree[node * 2 + 1]);
 	}
 
 	public static int[] merge(int[] a, int[] b) {
@@ -65,20 +68,22 @@ public class SegmentTree11 {
 		return c;
 	}
 
-	public static int[] find(int start, int end, int node, int left, int right) {
+	public static int find(int start, int end, int node, int left, int right, int value) {
 		if (right < start || end < left) {
-			return new int[0];
+			return 0;
 		}
 		if (left <= start && end <= right) {
-			return new int[] { tree[node] };
+			int len = tree[node].length;
+			int idx = upperBound(tree[node], value);
+			return len - idx;
 		}
 		int mid = (start + end) / 2;
-		return merge(find(start, mid, node * 2, left, right), find(mid + 1, end, node * 2 + 1, left, right));
+		return find(start, mid, node * 2, left, right, value) + find(mid + 1, end, node * 2 + 1, left, right, value);
 	}
 
 	public static int upperBound(int[] a, int key) {
 		int front = 0;
-		int rear = a.length - 1;
+		int rear = a.length;
 		int mid;
 		while (front < rear) {
 			mid = (front + rear) / 2;
