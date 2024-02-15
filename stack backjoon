@@ -1,0 +1,37 @@
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.util.Stack;
+import java.io.IOException;
+
+public class App{
+    public static void main(String[] args) throws IOException{
+
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        StringBuffer sb = new StringBuffer();
+
+
+        int N = Integer.parseInt(br.readLine());
+        int[] towers = new int[N];
+        int[] results= new int[N];
+        String[] tower = br.readLine().split(" ");
+        for(int i=0;i<N;i++){
+            towers[i] = Integer.parseInt(tower[i]);
+        }
+
+        Stack<Integer> tower_stack = new Stack<>();
+
+        for(int i=N-1;i>=0;--i){
+            while(!tower_stack.empty() && towers[tower_stack.peek()] < towers[i]){
+                results[tower_stack.pop()] = i+1;
+            }
+            tower_stack.push(i);
+        }
+        while(!tower_stack.empty()){    
+            results[tower_stack.pop()] = 0;
+        }
+        for(int i=0;i<N;i++){
+            sb.append(results[i]+" ");
+        }
+        System.out.print(sb);
+    }
+}
