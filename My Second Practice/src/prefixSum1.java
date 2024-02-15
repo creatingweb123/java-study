@@ -1,81 +1,92 @@
 
-// 팬위 트리
-// 백준 11658
-// segment tree with lazy propagation
+// 백준 5419
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.util.Collections;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.StringTokenizer;
 
 public class prefixSum1 {
-    public static long[][] trees;
+
+    static int[] tree;
+    static int[] yIndex;
+
+    static class Point {
+        int x, y;
+
+        Point(int x, int y) {
+            this.x = x;
+            this.y = y;
+        }
+    }
 
     public static void main(String[] args) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(System.out));
-
-        StringTokenizer st = new StringTokenizer(br.readLine());
-        int N = Integer.parseInt(st.nextToken());
-        int M = Integer.parseInt(st.nextToken());
-
-        trees = new long[N + 1][N + 1];
-
+        int testCase = Integer.parseInt(br.readLine());
         StringBuilder sb = new StringBuilder();
-        for (int i = 1; i <= N; i += 1) {
-            st = new StringTokenizer(br.readLine());
-            for (int j = 1; j <= N; j += 1) {
-                update(i, j, Long.parseLong(st.nextToken()));
-            }
-        }
+        while (testCase-- > 0) {
+            int N = Integer.parseInt(br.readLine());
+            tree = new int[N * 4];
+            yIndex = new int[N];
+            long result = 0;
+            List<Point> datas = new ArrayList<>();
 
-        for (int i = 0; i < M; i++) {
-            st = new StringTokenizer(br.readLine());
-            int w = Integer.parseInt(st.nextToken());
-            int x = Integer.parseInt(st.nextToken());
-            int y = Integer.parseInt(st.nextToken());
-            if (w == 1) {
-                int x1 = Integer.parseInt(st.nextToken());
-                int y1 = Integer.parseInt(st.nextToken());
-                sb.append(findData(x1, y1, x, y) + "\n");
-            } else {
-                long c = Integer.parseInt(st.nextToken());
-                long dif = c - findData(x, y, x, y);
-                update(x, y, dif);
+            for (int i = 0; i < N; i++) {
+                StringTokenizer st = new StringTokenizer(br.readLine());
+                int x = Integer.parseInt(st.nextToken());
+                int y = Integer.parseInt(st.nextToken());
+                datas.add(new Point(x, y));
             }
+            // y값 내림차순 정렬
+            Collections.sort(datas, (a, b) -> b.y - a.y);
+            int cnt = 1;
+            for (int i = 0; i < N; i++) {
+                if (i > 0 && datas.get(i).y != datas.get(i - 1).y)
+                    cnt++;
+                // y값이 큰 수부터 1,2,3,4...
+                yIndex[i] = cnt;
+            }
+            for (int i = 0; i < N; i++) {
+                datas.get(i).y = yIndex[i];
+            }
+            Collections.sort(datas, (a, b) -> {
+                return (a.x == b.x) ? a.y - b.y : a.x - b.x;
+            });
+            for (int i = 0; i < N; i++) {
+                int y = datas.get(i).y;
+                result += sum(1, N, 1, 1, y);
+                update(1, N, 1, y);
+            }
+            sb.append(result + "\n");
+
         }
         bw.write(sb.toString());
         bw.flush();
         bw.close();
     }
 
-    public static void update(int x, int y, long value) {
-        while (x < trees.length) {
-            int tempY = y;
-            while (tempY < trees[x].length) {
-                trees[x][tempY] += value;
-                tempY += (tempY & -tempY);
-            }
-            x += (x & -x);
-        }
+    public static void update(int start, int end, int node, int index) {
+        if (index < start || index > end)
+            return;
+        tree[node] += 1;
+        if (start == end)
+            return;
+        int mid = (start + end) / 2;
+        update(start, mid, node * 2, index);
+        update(mid + 1, end, node * 2 + 1, index);
     }
 
-    public static long sum(int x, int y) {
-        long result = 0;
-        while (x > 0) {
-            int tempY = y;
-            while (tempY > 0) {
-                result += trees[x][tempY];
-                tempY -= (tempY & -tempY);
-            }
-            x -= (x & -x);
-        }
-        return result;
+    public static int sum(int start, int end, int node, int left, int right) {
+        if (right < start || end < left)
+            return 0;
+        if (left <= start && end <= right)
+            return tree[node];
+        int mid = (start + end) / 2;
+        return sum(start, mid, node * 2, left, right) + sum(mid + 1, end, node * 2 + 1, left, right);
     }
-
-    public static long findData(int x, int y, int x1, int y1) {
-        return sum(x, y) - sum(x, y1 - 1) - sum(x1 - 1, y) + sum(x1 - 1, y1 - 1);
-    }
-
 }
