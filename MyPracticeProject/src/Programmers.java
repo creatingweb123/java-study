@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Set;
 
 // 프로그래머스 1차 예선
-// 비밀코드 해독독
+// 비밀코드 해독
 class Programmers {
     private List<Set<Integer>> result = new ArrayList<>();
     private int[] now = new int[5];
