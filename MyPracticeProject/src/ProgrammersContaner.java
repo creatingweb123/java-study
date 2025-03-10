@@ -3,7 +3,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
-class Solution {
+class ProgrammersContainer {
     private char[][] container;
     private int[][] fourWay = { { 0, 1 }, { 1, 0 }, { 0, -1 }, { -1, 0 } };
     private String[] storage;
