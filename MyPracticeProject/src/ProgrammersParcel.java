@@ -1,48 +1,42 @@
+
 public class ProgrammersParcel {
     public static void main(String[] args) {
-        ProgrammersParcel tree = new ProgrammersParcel();
-        int n = 22;
-        int w = 6;
-        int num = 8;
+        ProgrammersParcel parcel = new ProgrammersParcel();
+        int n = 10;
+        int w = 5;
+        int num = 3;
 
-        int result = tree.solution(n, w, num);
+        int result = parcel.solution(n, w, num);
         System.out.println("Result: " + result);
     }
 
     public int solution(int n, int w, int num) {
-        int answer = 0;
-        int x1 = n / w;
-        int y1 = n % w;
 
-        int x2 = num / w;
-        int y2 = num % w;
+        int totalFloor = n / w + (n % w > 0 ? 1 : 0);
+        int lastFloorIndex = (n % w > 0) ? n % w : w;
 
-        int totalFloor = (y1 != 0) ? x1 + 1 : x1;
-        int totalIndex = (y1 != 0) ? y1 : w;
+        int numFloor = num / w + (num % w > 0 ? 1 : 0);
+        int numIndex = (num % w > 0) ? num % w : w;
 
-        int numFloor = (y2 != 0) ? x2 + 1 : x2;
-        int numIndex = (y2 != 0) ? y2 : w;
+        int startIndex, endIndex, adjustedNumIndex = numIndex;
 
-        int startIndex = 1;
-        int endIndex = w;
-
-        int numRealIndex = 0;
-
-        if (totalFloor % 2 != 0) {
-            endIndex = totalIndex;
+        // 홀수 층일 경우 왼쪽부터 채워지고
+        // 짝수 층일 경우 오른쪽부터 채워진다.
+        if (totalFloor % 2 == 1) {
+            startIndex = 1;
+            endIndex = lastFloorIndex;
         } else {
-            startIndex = w - totalIndex + 1;
+            startIndex = w - lastFloorIndex + 1;
+            endIndex = w;
         }
-
+        // 상자 index 계산
         if (numFloor % 2 == 0)
-            numRealIndex = w - numIndex + 1;
+            adjustedNumIndex = w - numIndex + 1;
 
-        if (startIndex <= numRealIndex && numRealIndex <= endIndex) {
-            answer = totalFloor - numFloor + 1;
-        } else {
-            answer = totalFloor - numFloor;
-        }
+        int answer = totalFloor - numFloor;
+        // 가장 위층에 택배가 있는 경우
+        if (startIndex <= adjustedNumIndex && adjustedNumIndex <= endIndex)
+            answer += 1;
         return answer;
     }
-
 }
