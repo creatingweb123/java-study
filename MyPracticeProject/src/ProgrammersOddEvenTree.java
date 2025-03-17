@@ -1,118 +1,121 @@
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ProgrammersOddEvenTree {
-    // Node class
-    private static class Node {
-        private List<Integer> child = new ArrayList<>();
-
-        public void addChild(int childNum) {
-            this.child.add(childNum);
-        }
-
-        public List<Integer> getChildren() {
-            return child;
-        }
-
-    }
-
     public static void main(String[] args) {
         ProgrammersOddEvenTree tree = new ProgrammersOddEvenTree();
-        int[] result = tree.solution();
+        int[] nodes = { 9, 15, 14, 7, 6, 1, 2, 4, 5, 11, 8, 10 };
+        int[][] edges = { { 5, 14 }, { 1, 4 }, { 9, 11 }, { 2, 15 }, { 2, 5 }, {
+                9, 7
+        }, { 8, 1 }, { 6, 4 } };
+        int[] result = tree.solution(nodes, edges);
         System.out.println("Result: " + result[0] + ", " + result[1]);
     }
 
-    private static final int MAX_NODES = 400001;
-    private Node[] nodeLink = new Node[MAX_NODES];
-    private boolean[] visited = new boolean[MAX_NODES];
-    // parent 홀짝child 역홀짝child
-    // parent 홀짝 => 0, 역홀짝 => 1
-    // child는 갯수
-    private int[] checkBox = new int[3];
+    private int[] parent;
+    private int[] indegree;
+    private Map<Integer, TreeInfo> treeList;
 
-    private int[] nodes = { 9, 15, 14, 7, 6, 1, 2, 4, 5, 11, 8, 10 };
-    private int[][] edges = { { 5, 14 }, { 1, 4 }, { 9, 11 }, { 2, 15 }, { 2, 5 }, { 9, 7 }, { 8, 1 }, { 6, 4 } };
+    public void initTree(int[] nodes, int[][] edges) {
+        int index = 0;
+        for (int node : nodes) {
+            index = Math.max(index, node);
+        }
+        parent = new int[index + 1];
+        indegree = new int[index + 1];
 
-    public int[] solution() {
+        for (int node : nodes) {
+            parent[node] = node;
+        }
+
+        for (int[] edge : edges) {
+            int a = edge[0];
+            int b = edge[1];
+            indegree[a]++;
+            indegree[b]++;
+            merge(a, b);
+        }
+    }
+
+    public int find(int num) {
+        if (parent[num] == num)
+            return num;
+        return parent[num] = find(parent[num]);
+    }
+
+    public void merge(int a, int b) {
+        int parentA = find(a);
+        int parentB = find(b);
+        if (parentA != parentB) {
+            parent[parentA] = parentB;
+        }
+    }
+
+    public int[] solution(int[] nodes, int[][] edges) {
         int[] answer = new int[2];
-        initNode();
-        checkTree(answer);
-        checkState(answer);
-        answer[0] -= 1;
+        initTree(nodes, edges);
+        treeList = new HashMap<>();
+        for (int node : nodes) {
+            int parentNode = find(node);
+            boolean isEven = node % 2 == 0;
+            boolean hasEvenChildren = indegree[node] % 2 == 0;
+            // 부모
+            TreeInfo parent = treeList.getOrDefault(parentNode, new TreeInfo());
+
+            if (parentNode == node) {
+                parent.parentCheck(isEven != hasEvenChildren);
+            } else {
+                if (isEven == hasEvenChildren) {
+                    // child - parent edge로 child - child_child edge의 개수가 1 많아지기에 역홀짝트리를 증가
+                    parent.addReverseOddEven();
+                } else {
+                    parent.addOddEven();
+                }
+            }
+            treeList.put(parentNode, parent);
+        }
+        for (TreeInfo tmp : treeList.values()) {
+            int check0 = tmp.isReverseOddEven;
+            int check1 = tmp.getOddEven();
+            int check2 = tmp.getReverseOddEven();
+            if (check0 == check2) {
+                answer[0] += (check1 + check2 == 1 || check2 == 0 || check1 > 0) ? 1 : 0;
+                answer[1] += (check1 + check2 == 1) ? 1 : 0;
+            } else {
+                answer[1] += (check0 + check1 == 1 && (check1 == 0 || check2 > 0)) ? 1 : 0;
+            }
+        }
         return answer;
     }
 
-    // nodeLink, visited init
-    public void initNode() {
+    public class TreeInfo {
+        private int isReverseOddEven;
+        private int oddEven = 0;
+        private int reverseOddEven = 0;
 
-        for (int i : nodes) {
-            nodeLink[i] = new Node();
+        public int isReverseOddEven() {
+            return isReverseOddEven;
         }
-        for (int[] edge : edges) {
 
-            nodeLink[edge[0]].addChild(edge[1]);
-            nodeLink[edge[1]].addChild(edge[0]);
+        public int getOddEven() {
+            return oddEven;
         }
-    }
 
-    public void checkTree(int[] result) {
-        Queue<Integer> queue = new LinkedList<>();
-        int index = 0;
-        queue.add(nodes[index++]);
-
-        while (index < nodes.length) { // index <= size 대신 queue가 비어있지 않을 때까지
-            if (queue.isEmpty()) {
-                while (index < nodes.length && visited[nodes[index]]) {
-                    index += 1;
-                }
-
-                if (index < nodes.length) {
-                    queue.add(nodes[index++]);
-                } else {
-                    break;
-                }
-            }
-            // queue pop
-            int nodeNumber = queue.poll();
-            // root node일때
-            boolean isEven = nodeNumber % 2 == 0;
-            boolean hasEvenChildren = nodeLink[nodeNumber].getChildren().size() % 2 == 0;
-            if (!visited[nodeNumber]) {
-                // 이전의 tree를 통해 update
-                checkState(result);
-                Arrays.fill(checkBox, 0);
-                // 0: 홀짝트리, 1: 역홀짝트리리
-                checkBox[0] = (isEven == hasEvenChildren) ? 0 : 1;
-
-            } else {// 자식 node 일때
-                // 부모 노드로 인해 해당 노드의 자식 노드의 개수가 1 추가된다.
-                if (isEven == hasEvenChildren) {
-                    checkBox[2]++;
-                } else {
-                    checkBox[1]++;
-                }
-
-            }
-            visited[nodeNumber] = true;
-            for (int child : nodeLink[nodeNumber].getChildren()) {
-                if (!visited[child]) { // 방문하지 않은 노드만 큐에 추가
-                    queue.add(child);
-                    visited[child] = true;
-                }
-            }
-            System.out.println("check2");
+        public int getReverseOddEven() {
+            return reverseOddEven;
         }
-    }
 
-    public void checkState(int[] result) {
-
-        if (checkBox[0] == checkBox[2]) {
-            result[0] += (checkBox[0] == 0 || checkBox[1] > 0) ? 1 : 0;
-        } else {
-            result[1] += (checkBox[0] + checkBox[1] == 1 && (checkBox[1] == 0 || checkBox[2] > 0)) ? 1 : 0;
+        public void parentCheck(boolean check) {
+            this.isReverseOddEven = check ? 1 : 0;
         }
+
+        public void addOddEven() {
+            this.oddEven++;
+        }
+
+        public void addReverseOddEven() {
+            this.reverseOddEven++;
+        }
+
     }
 }
